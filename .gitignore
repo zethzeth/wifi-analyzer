@@ -5,8 +5,9 @@
 # Other
 .notes
 
-# DB
+# Environment and executable files
 *.db
+.env
 
 # Venv
 wifianalyzerenv

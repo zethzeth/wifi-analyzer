@@ -1,5 +1,6 @@
 SHELL := /bin/bash
 VENV_NAME := wifianalyzerenv
+DB_NAME := wifi_analyzer.db
 
 # ANSI Escape Codes for colors
 RESET  := \033[0m
@@ -39,6 +40,9 @@ run: ## Run the program
 	fi
 	@python3 main.py
 
+#-- DB
+reset-db: ## Delete database
+	@rm $(DB_NAME)
 
 #-- Venv
 setup-env: ## Install the virtual environment

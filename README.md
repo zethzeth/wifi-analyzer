@@ -4,12 +4,13 @@ A program for testing the wifi-connection.
 
 ## Setup
 
-Do this to set it up:
+**Step 1: .env**
 
-```
-py -m venv wifianalyzerenv
-source wifianalyzerenv/bin/activate
-```
+Correct values in `.env`
+
+**Step 2: Venv**
+
+Read the "Venv"-section of the Makefile.
 
 ## Useful commands
 

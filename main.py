@@ -1,8 +1,14 @@
+import os
+from dotenv import load_dotenv
 from colorama import init, Fore, Style
-from setup_db import init_db
+from helpers.setup_helpers import setup_db
 from helpers.date_helpers import get_current_datetime_string
 
-init(autoreset=True)  # Initialize colorama
+# Initialize colorama
+init(autoreset=True)
+
+# Load the .env file
+load_dotenv()
 
 
 def get_user_input():
@@ -42,7 +48,7 @@ def get_user_input():
 
 
 if __name__ == "__main__":
-    init_db()
+    setup_db()
 
     # Get variables
     location, domain, test_name = get_user_input()
