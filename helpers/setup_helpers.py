@@ -12,11 +12,11 @@ def setup_db():
     # Creating table for user inputs
     cursor.execute(
         """
-    CREATE TABLE IF NOT EXISTS user_inputs (
+    CREATE TABLE IF NOT EXISTS  (
         id INTEGER PRIMARY KEY,
+        test_name TEXT,
         location TEXT,
         domain TEXT DEFAULT "google.com",
-        test_name TEXT,
         timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
     )"""
     )

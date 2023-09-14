@@ -1,4 +1,4 @@
-# Wifi tester
+# Wifi analyzer
 
 A program for testing the wifi-connection.
 
