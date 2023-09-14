@@ -1,2 +1,15 @@
+# IDE
 .idea
+.vscode
+
+# Other
 .notes
+
+# DB
+*.db
+
+# Venv
+wifianalyzerenv
+
+# Python
+__pycache__/
