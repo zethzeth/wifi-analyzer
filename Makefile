@@ -42,6 +42,7 @@ run: ## Run the program
 
 #-- DB
 reset-db: ## Delete database
+	@python3 scripts/drop-all-tables.py
 	@rm $(DB_NAME)
 
 #-- Venv
