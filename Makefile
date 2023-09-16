@@ -33,6 +33,13 @@ help:
 	| sed -e 's/\[32m #-- /[33m/'
 
 #-- Program execution
+get-setup-info: ## Print router IP and other info
+	@if [ -z "$$VIRTUAL_ENV" ] || [[ ! "$$VIRTUAL_ENV" =~ "wifianalyzerenv" ]]; then \
+		echo "You are not in the 'wifianalyzerenv' virtual environment. Activate it with: make activate-env"; \
+		exit 1; \
+	fi
+	@python3 get_setup_info.py
+
 run: ## Run the program
 	@if [ -z "$$VIRTUAL_ENV" ] || [[ ! "$$VIRTUAL_ENV" =~ "wifianalyzerenv" ]]; then \
 		echo "You are not in the 'wifianalyzerenv' virtual environment. Activate it with: make activate-env"; \
