@@ -1,10 +1,7 @@
 import os
 from dotenv import load_dotenv
 import sqlite3
-from helpers.print_helpers import (
-    print_block_title,
-    print_table_line,
-)
+from helpers.print_helpers import print_block_title
 from helpers.date_helpers import get_current_datetime_string
 from core.analysis_state import AnalysisState
 
@@ -23,15 +20,6 @@ def add_log_to_db(event_type, result, target, succeeded=1):
         "INSERT INTO logs (analysis_id, event_type, result, target, succeeded) VALUES (?, ?, ?, ?, ?)",
         (analysis_id, event_type, result, target, succeeded),
     )
-    print_tests = os.getenv("PRINT_TESTS")
-    if print_tests:
-        print_table_line(
-            get_current_datetime_string("%H:%M:%S"),
-            event_type,
-            result,
-            target,
-            succeeded,
-        )
     conn.commit()
     conn.close()
 
