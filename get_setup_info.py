@@ -88,5 +88,5 @@ def get_router_details():
 
 
 if __name__ == "__main__":
-    get_first_nameserver()
+    # get_first_nameserver()
     get_router_details()

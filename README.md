@@ -4,6 +4,7 @@ A program for testing the wifi-connection.
 
 ## Todo
 
+- Make it possible to spot, if one is jumping between 2.4ghz and 5.0ghz, by logging the channel from airport somewhere. 
 - Make mini speedtest to run with each test
 - Make better formatted print, for table-like items (add_log_to_db print)
 - Get Noise from airport, as well as Signal and SNR.

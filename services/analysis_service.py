@@ -2,7 +2,12 @@ import os
 import time
 from helpers.concurrent_helpers import run_concurrently
 from helpers.test_helpers import function_one, function_two
-from helpers.print_helpers import print_formatted, print_block_title, print_table_line
+from helpers.print_helpers import (
+    print_formatted,
+    print_block_title,
+    print_table_line,
+    print_table_header,
+)
 
 from database.db import get_connection
 from core.analysis_state import AnalysisState
@@ -40,8 +45,7 @@ def run_analysis():
     test_runs = int(os.getenv("TEST_RUNS"), 0)
     print_tests = os.getenv("PRINT_TESTS")
     if print_tests:
-        print_table_line("Timestamp", "Type", "Result", "Target", "Succeeded")
-        print_table_line("-------", "-------", "-------", "-------", "-------")
+        print_table_header("Timestamp", "Type", "Result", "Target", "Succeeded")
     if not test_runs:
         test_runs = 50
     for _ in range(test_runs):

@@ -53,7 +53,13 @@ def print_table_line(*args, col_widths=None):
             item = item[: width - len(truncated_suffix)] + truncated_suffix
         items.append(item.ljust(width))  # Left-align by padding with spaces.
 
-    line = "| " + " | ".join(items) + " |"
+    color_code = "\033[38;2;64;64;64m"
+    reset_code = "\033[m"
+    line = (
+        f"{color_code}|{reset_code} "
+        + f" {color_code}|{reset_code} ".join(items)
+        + f" {color_code}|{reset_code}"
+    )
     print(line)
 
     # If you want separators, you can print them like this:
@@ -73,6 +79,7 @@ def print_table_header(*args, col_widths=None):
     top_line = "+"
     for width in col_widths:
         top_line += "-" * (width + 2) + "+"
+    # print(Style.DIM + top_line + Style.RESET_ALL)
     print(top_line)
 
     # Adjust each item to fit the given width.
@@ -83,7 +90,9 @@ def print_table_header(*args, col_widths=None):
         if len(item) > width:
             item = item[: width - len(truncated_suffix)] + truncated_suffix
         # Left-align by padding with spaces and apply bold and blue style.
-        items.append(Fore.BLUE + Style.BRIGHT + item.ljust(width))
+        items.append(
+            Fore.BLUE + Style.BRIGHT + item.ljust(width) + Style.RESET_ALL + Fore.RESET
+        )
 
     line = "| " + " | ".join(items) + " |"
     print(line)
