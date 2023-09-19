@@ -10,11 +10,11 @@ def print_env_variables():
         ("ANALYSIS_NAME", "Test name"),
         ("TEST_DOMAIN", "Domain"),
         ("LOCATION", "Location"),
-        ("ROUTER_IP", "Router IP"),
         ("PAUSE_INTERVAL_LENGTH", "Pause interval length"),
         ("PING_COUNT", "Ping count"),
         ("TEST_RUNS", "Test runs"),
         ("PRINT_TESTS", "Print tests"),
+        ("EXPLAIN_FAILED_PINGS", "Explain failed pings"),
     ]
 
     # Iterate over each environment variable and its display name

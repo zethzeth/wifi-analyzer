@@ -160,13 +160,13 @@ def print_table_headers(*args, col_widths=None):
     # Print each header
     for i, header in enumerate(args):
         # Print the left table border
-        print_color("|", color="white", newline=False)
+        print_color("|", color="dark", newline=False)
 
         # Print the header content
         print_table_header(header, col_widths[i])
 
     # Print the right table border and move to the next line
-    print_color("|", color="white")
+    print_color("|", color="dark")
 
     # Print the lower border line
     print_color("-" * line_length, color="white")

@@ -36,7 +36,7 @@ def ping(event_type, ip_to_ping):
                 )
             db.add_log_to_db(event_type, response_time, ip_to_ping, succeeded)
             return True
-    except subprocess.CalledProcessError:
+    except subprocess.CalledProcessError as e:
         succeeded = 0
         response_time = None
 
@@ -50,4 +50,12 @@ def ping(event_type, ip_to_ping):
                 succeeded,
             )
         db.add_log_to_db(event_type, None, ip_to_ping, succeeded)
+
+        if os.getenv("EXPLAIN_FAILED_PINGS"):
+            print("Command execution failed!")
+            print(f"Command: {e.cmd}")
+            print(f"Return code: {e.returncode}")
+            print("Output/Error:")
+            print(e.output)  # or print(e.stdout) - it's the same in this case
+
         return False

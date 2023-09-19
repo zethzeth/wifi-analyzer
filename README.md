@@ -50,7 +50,7 @@ ping 8.8.8.8
 traceroute 8.8.8.8
 ```
 
-## Applications (Mac)
+## Applications and tools
 
 A list of applications I use.
 
@@ -58,22 +58,33 @@ A list of applications I use.
 
 Price: 59 DKK
 Not worth premium. Don't buy.
+Platform: Mac
 
 
 ### LanScan
 
 Good for finding devices on network.
 Not worth premium. Don't buy.
+Platform: Mac
 
 ### Ultra Wifi
 
 Gives a good analysis. Plus signal history! 
 Premium is worth it, I'd say. But get the lifetime option.
+Platform: Mac
 
 ### iWifi
 
 Seems good. 
 Seems worth Premium. 
 Untried
+Platform: Mac
+
+### MTR
+
+Platform: Mac or Linux
+Has to run with sudo, like: `sudo mtr 8.8.8.8`
+
+Free and pretty interesting.
 
 

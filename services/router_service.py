@@ -1,5 +1,6 @@
 import os
 import subprocess
+import ipaddress
 from dotenv import load_dotenv
 from helpers.print_helpers import (
     print_color,
@@ -23,11 +24,20 @@ def get_router_ip():
             parts = line.split()
             if (
                 len(parts) > 1 and "." in parts[1]
-            ):  # Check for '.' to confirm it's an IPv4 address
-                return parts[1]
+            ):  # Check for '.' to quickly identify a potential IPv4 address
+                ip_candidate = parts[1]
+                try:
+                    # Check if the candidate is a valid IPv4 address
+                    ipaddress.IPv4Address(ip_candidate)
+                    return ip_candidate
+                except ipaddress.AddressValueError:
+                    pass  # Not a valid IPv4 address, so continue to the next line
+
     except subprocess.CalledProcessError:
-        print_color("Error getting the router's IP.", "red")
-    return "Unknown"
+        print("Error getting the router's IP.")
+
+    # If the function has not returned by now, it means no valid IP was found
+    raise ValueError("No valid IP address found")
 
 
 def get_router_details():

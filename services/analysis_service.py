@@ -1,5 +1,6 @@
 import os
 import time
+from pprint import pprint
 from helpers.concurrent_helpers import run_concurrently
 from helpers.test_helpers import function_one, function_two
 from helpers.print_helpers import (
@@ -13,6 +14,7 @@ from core.analysis_state import AnalysisState
 
 from services.network_service import ping
 from services.dns_service import resolve_domain
+from services.router_service import get_router_ip, get_router_details
 
 
 def start_new_analysis():
@@ -35,14 +37,23 @@ def start_new_analysis():
 
     print_block_title("Starting analysis")
 
+    # Router info
+    router_ip = get_router_ip()
+    router_details = get_router_details()
+    print_block_title("Router info")
+    pprint(router_details)
+    print("IP: " + router_ip)
+
     run_analysis()
 
 
 def run_analysis():
     # results = run_concurrently(function_one, function_two)
-    router_ip = os.getenv("ROUTER_IP")
+    # router_ip = os.getenv("ROUTER_IP")
+    router_ip = get_router_ip()
     test_runs = int(os.getenv("TEST_RUNS"), 0)
     print_tests = os.getenv("PRINT_TESTS")
+
     if print_tests:
         print_table_headers("Timestamp", "Type", "Result (ms)", "Target", "Succeeded")
     for _ in range(test_runs):
