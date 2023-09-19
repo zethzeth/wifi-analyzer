@@ -55,7 +55,9 @@ def run_analysis():
     print_tests = os.getenv("PRINT_TESTS")
 
     if print_tests:
-        print_table_headers("Timestamp", "Type", "Result (ms)", "Target", "Succeeded")
+        print_table_headers(
+            "Timestamp", "Type", "Result (ms)", "Target", "Succeeded", "SNR", "Channel"
+        )
     for _ in range(test_runs):
         ping("ping router", router_ip)
         ping("ping google", "8.8.8.8")

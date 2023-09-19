@@ -3,16 +3,48 @@ import time
 import subprocess
 import re
 
+from pprint import pprint
 from helpers.date_helpers import get_current_datetime_string
 from helpers.print_helpers import (
     print_table_ping_line,
 )
+
+from services.router_service import get_router_details
 
 from database import db
 
 
 def ping(event_type, ip_to_ping):
     succeeded = 1
+
+    router_details = get_router_details()
+    # pprint(router_details)
+    #     {'802.11 auth': 'open',
+    #  'BSSID': '',
+    #  'MCS': '15',
+    #  'NSS': '2',
+    #  'SSID': 'Zeth’s iPhone',
+    #  'agrCtlNoise': '-71',
+    #  'agrCtlRSSI': '-41',
+    #  'agrExtNoise': '0',
+    #  'agrExtRSSI': '0',
+    #  'channel': '6',
+    #  'guardInterval': '800',
+    #  'lastAssocStatus': '0',
+    #  'lastTxRate': '130',
+    #  'link auth': 'wpa2-psk',
+    #  'maxRate': '144',
+    #  'op mode': 'station',
+    #  'state': 'running'}
+    router_signal = int(router_details["agrCtlRSSI"])
+    router_noise = int(router_details["agrCtlNoise"])
+    router_snr = router_signal - router_noise
+    router_channel = router_details["channel"]
+    router_snr_string = (
+        str(router_snr) + " (" + str(router_signal) + ", " + str(router_noise) + ")"
+    )
+    exception = None
+
     try:
         ping_count = os.getenv("PING_COUNT")
         output = subprocess.check_output(
@@ -25,37 +57,29 @@ def ping(event_type, ip_to_ping):
         match = re.search("time=(\d+\.\d+) ms", output)
         if match:
             response_time = match.group(1).split(".")[0]
-            print_tests = os.getenv("PRINT_TESTS")
-            if print_tests:
-                print_table_ping_line(
-                    get_current_datetime_string("%H:%M:%S"),
-                    event_type,
-                    response_time,
-                    ip_to_ping,
-                    succeeded,
-                )
             db.add_log_to_db(event_type, response_time, ip_to_ping, succeeded)
-            return True
     except subprocess.CalledProcessError as e:
         succeeded = 0
         response_time = None
-
-        print_tests = os.getenv("PRINT_TESTS")
-        if print_tests:
-            print_table_ping_line(
-                get_current_datetime_string("%H:%M:%S"),
-                event_type,
-                response_time,
-                ip_to_ping,
-                succeeded,
-            )
         db.add_log_to_db(event_type, None, ip_to_ping, succeeded)
+        exception = e
 
-        if os.getenv("EXPLAIN_FAILED_PINGS"):
-            print("Command execution failed!")
-            print(f"Command: {e.cmd}")
-            print(f"Return code: {e.returncode}")
-            print("Output/Error:")
-            print(e.output)  # or print(e.stdout) - it's the same in this case
-
-        return False
+    # Print
+    print_tests = os.getenv("PRINT_TESTS")
+    if print_tests:
+        print_table_ping_line(
+            get_current_datetime_string("%H:%M:%S"),
+            event_type,
+            response_time,
+            ip_to_ping,
+            succeeded,
+            router_snr_string,
+            router_channel,
+        )
+        if not succeeded:
+            if os.getenv("EXPLAIN_FAILED_PINGS"):
+                print("Command execution failed!")
+                print(f"Command: {exception.cmd}")
+                print(f"Return code: {exception.returncode}")
+                print("Output/Error:")
+                print(exception.output)  # or print(e.stdout)

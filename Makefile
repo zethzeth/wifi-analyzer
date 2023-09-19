@@ -35,14 +35,16 @@ help:
 #-- Program execution
 get-setup-info: ## Print router IP and other info
 	@if [ -z "$$VIRTUAL_ENV" ] || [[ ! "$$VIRTUAL_ENV" =~ "wifianalyzerenv" ]]; then \
-		echo "You are not in the 'wifianalyzerenv' virtual environment. Activate it with: make activate-env"; \
+		echo "You are not in the 'wifianalyzerenv' virtual environment. Activate it with:"; \
+		echo -e "${ORANGE}source $(VENV_NAME)/bin/activate ${RESET}"; \
 		exit 1; \
 	fi
 	@python3 get_setup_info.py
 
 run: ## Run the program
 	@if [ -z "$$VIRTUAL_ENV" ] || [[ ! "$$VIRTUAL_ENV" =~ "wifianalyzerenv" ]]; then \
-		echo "You are not in the 'wifianalyzerenv' virtual environment. Activate it with: make activate-env"; \
+		echo "You are not in the 'wifianalyzerenv' virtual environment. Activate it with:"; \
+		echo -e "${ORANGE}source $(VENV_NAME)/bin/activate ${RESET}"; \
 		exit 1; \
 	fi
 	@python3 main.py
