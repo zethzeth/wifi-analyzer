@@ -2,25 +2,6 @@
 
 A program for testing the wifi-connection.
 
-## Todo
-
-- Make it possible to spot, if one is jumping between 2.4ghz and 5.0ghz, by logging the channel from airport somewhere. 
-- Make mini speedtest to run with each test
-- Make better formatted print, for table-like items (add_log_to_db print)
-- Get Noise from airport, as well as Signal and SNR.
-- Make a good overview. A good report.
-- Consider 2.4g and 5g
-- Make Trello board? 
-- Save router information.
-- Something regarding time of day? Must be relative to amount of Netflix and devices on network. 
-- Add assumption before tests are done? 
-- Add an 'overall quality of test'. Aggregated information of all results. Average? 
-- Add a summary and put it in summary-table (new). Average local pings, average remote pings, Amount of timeouts, etc.
-- Look into 'latency'
-- Look into round trips for tests
-- Look into 'pipe girth' and 'fluid speed' of a tests. What can be measured. 
-- Look into comparing DNS-resolving times. Can it be added to the same test? 
-
 ## Setup
 
 **Step 1: .env**
