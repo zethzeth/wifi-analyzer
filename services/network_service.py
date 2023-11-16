@@ -36,10 +36,21 @@ def ping(event_type, ip_to_ping):
     #  'maxRate': '144',
     #  'op mode': 'station',
     #  'state': 'running'}
-    router_signal = int(router_details["agrCtlRSSI"])
-    router_noise = int(router_details["agrCtlNoise"])
-    router_snr = router_signal - router_noise
-    router_channel = router_details["channel"]
+
+    router_signal = router_details.get("agrCtlRSSI")
+    if router_signal is not None:
+        router_signal = int(router_signal)
+
+    router_noise = router_details.get("agrCtlNoise")
+    if router_noise is not None:
+        router_noise = int(router_noise)
+
+    router_snr = "N/A"
+    if isinstance(router_signal, int) and isinstance(router_noise, int):
+        router_snr = router_signal - router_noise
+
+    router_channel = router_details.get("channel")
+
     router_snr_string = (
         str(router_snr) + " (" + str(router_signal) + ", " + str(router_noise) + ")"
     )
@@ -56,12 +67,12 @@ def ping(event_type, ip_to_ping):
         # Extract ping time from output
         match = re.search("time=(\d+\.\d+) ms", output)
         if match:
-            response_time = match.group(1).split(".")[0]
-            db.add_log_to_db(event_type, response_time, ip_to_ping, succeeded)
+            response_time = int(match.group(1).split(".")[0])
+            # db.add_log_to_db(event_type, response_time, ip_to_ping, succeeded)
     except subprocess.CalledProcessError as e:
         succeeded = 0
-        response_time = None
-        db.add_log_to_db(event_type, None, ip_to_ping, succeeded)
+        response_time = 0
+        # db.add_log_to_db(event_type, None, ip_to_ping, succeeded)
         exception = e
 
     # Print
@@ -83,3 +94,4 @@ def ping(event_type, ip_to_ping):
                 print(f"Return code: {exception.returncode}")
                 print("Output/Error:")
                 print(exception.output)  # or print(e.stdout)
+    return response_time
