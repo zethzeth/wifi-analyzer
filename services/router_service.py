@@ -1,10 +1,10 @@
-import os
-import subprocess
 import ipaddress
+import subprocess
+
 from dotenv import load_dotenv
+
 from helpers.print_helpers import (
     print_color,
-    print_block_title,
 )
 
 load_dotenv()
@@ -23,7 +23,7 @@ def get_router_ip():
         for line in full_router_info.split("\n"):
             parts = line.split()
             if (
-                len(parts) > 1 and "." in parts[1]
+                    len(parts) > 1 and "." in parts[1]
             ):  # Check for '.' to quickly identify a potential IPv4 address
                 ip_candidate = parts[1]
                 try:

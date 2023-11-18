@@ -1,7 +1,5 @@
-import os
-import time
 import subprocess
-from database import db
+import time
 
 from helpers.date_helpers import get_current_datetime_string
 from helpers.print_helpers import (
@@ -11,7 +9,7 @@ from helpers.print_helpers import (
 
 def resolve_domain():
     start_time = time.time()
-    test_domain = os.getenv("TEST_DOMAIN")
+    test_domain = 'google.com'
     succeeded = 1
     try:
         subprocess.check_output(

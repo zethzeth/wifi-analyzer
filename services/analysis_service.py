@@ -1,70 +1,35 @@
-import os
 import select
-import time
 import sys
-import speedtest
-
+import time
+from datetime import datetime
 from pprint import pprint
-from helpers.concurrent_helpers import run_concurrently
-from helpers.date_helpers import get_current_datetime_string
-from helpers.print_helpers import (
-    print_formatted,
-    print_block_title,
-    print_table_headers,
-    print_table_ping_line,
-)
+
+import services.router_service as router_service
+import services.speedtest_service as speedtest_service
 from config import config
-
-from database.db import get_connection
-from core.analysis_state import AnalysisState
-
-from services.network_service import ping
+from helpers.print_helpers import (
+    print_table_headers, print_block_title,
+)
 from services.dns_service import resolve_domain
-from services.router_service import get_router_ip, get_router_details
+from services.network_service import ping
 
 
-def start_new_analysis():
-    print_block_title("Starting analysis")
-
-    # Router info
-    router_ip = get_router_ip()
-    router_details = get_router_details()
+def display_info():
     print_block_title("Router info")
+    router_ip = router_service.get_router_ip()
+    router_details = router_service.get_router_details()
     pprint(router_details)
     print("IP: " + router_ip)
 
-    run_analysis()
-
-
-def get_speeds():
-    st = speedtest.Speedtest()
-    st.download()
-    st.upload()
-    download_result = round(st.results.download / 1e6, 2)  # Rounded to 2 decimal places
-    upload_result = round(st.results.upload / 1e6, 2)  # Rounded to 2 decimal places
-    print(f"Speedtest result: {download_result} Mbps / {upload_result} Mbps")
-
-    print_table_ping_line(
-        get_current_datetime_string("%H:%M:%S"),
-        "Speedtest (DL)",
-        download_result,
-        " ",
-        1,
-        " ",
-        " ",
-    )
-
-    print_table_ping_line(
-        get_current_datetime_string("%H:%M:%S"),
-        "Speedtest (UL)",
-        upload_result,
-        " ",
-        1,
-        " ",
-        " ",
-    )
-
-    return download_result, upload_result
+    print_block_title('Test details')
+    for key, value in config.items():
+        if (key == 'test_start_unix_stamp' or key == 'test_end_unix_stamp'):
+            human_readable_date = datetime.fromtimestamp(value)
+            formatted_date = human_readable_date.strftime("%Y-%m-%d--%H-%M-%S")
+            print(f"{key}: {value} ({formatted_date})")
+        else:
+            print(f"{key}: {value}")
+    print(f"\n\n")
 
 
 def run_analysis():
@@ -78,13 +43,17 @@ def run_analysis():
 
     summarized_download_speed = 0
     summarized_upload_speed = 0
-    number_of_speedtests = 0
+    number_of_download_speedtests = 0
+    number_of_upload_speedtests = 0
 
     def add_speedtest_values(download_speed, upload_speed):
-        nonlocal summarized_download_speed, summarized_upload_speed, number_of_speedtests
-        summarized_download_speed += download_speed
-        summarized_upload_speed += upload_speed
-        number_of_speedtests += 1
+        nonlocal summarized_download_speed, summarized_upload_speed, number_of_download_speedtests, number_of_upload_speedtests
+        if download_speed != 0:
+            summarized_download_speed += download_speed
+            number_of_download_speedtests += 1
+        if upload_speed != 0:
+            summarized_upload_speed += upload_speed
+            number_of_upload_speedtests += 1
 
     def add_ping_value(ping_time):
         nonlocal summarized_ping, number_of_pings, failed_pings
@@ -102,17 +71,14 @@ def run_analysis():
         else:
             failed_dns_resolves += 1
 
-    # router_ip = os.getenv("ROUTER_IP")
-    router_ip = get_router_ip()
-    test_runs = config["test_rounds"]
-    print_tests = os.getenv("PRINT_TESTS")
     completed_test_runs = 0
 
-    if print_tests:
-        print_table_headers(
-            "Timestamp", "Type", "Result (ms)", "Target", "Succeeded", "SNR", "Channel"
-        )
-    for _ in range(test_runs):
+    print_table_headers(
+        "Timestamp", "Type", "Result (ms)", "Target", "Succeeded", "SNR", "Channel"
+    )
+    test_runs = 1
+    while True:
+        test_runs += 1
         completed_test_runs += 1
         if sys.stdin in select.select([sys.stdin], [], [], 0)[0]:
             line = input()
@@ -129,7 +95,7 @@ def run_analysis():
 
                 if number_of_dns_resolves > 0:
                     avg_dns_resolve_time = (
-                        summarized_dns_resolve_time / number_of_dns_resolves
+                            summarized_dns_resolve_time / number_of_dns_resolves
                     )
                     print(
                         f"Average DNS resolve time: {avg_dns_resolve_time:.2f} ms ({number_of_dns_resolves})"
@@ -138,17 +104,34 @@ def run_analysis():
                 else:
                     print(f"number_of_dns_resolves was 0")
 
-                avg_download_speed = summarized_download_speed / completed_test_runs
-                avg_upload_speed = summarized_upload_speed / completed_test_runs
-                print(f"Average download speed: {avg_download_speed:.2f} Mbps")
-                print(f"Average upload speed: {avg_upload_speed:.2f} Mbps")
-                print(f"Speedtests: {number_of_speedtests}")
+                if number_of_download_speedtests > 0:
+                    avg_download_speed = (
+                            summarized_download_speed / number_of_download_speedtests
+                    )
+                    print(
+                        f"Average download speed: {avg_download_speed:.2f} Mbps ({number_of_download_speedtests})"
+                    )
+                else:
+                    print(
+                        f"number_of_download_speedtests was 0. Sum: {summarized_download_speed}"
+                    )
+                if number_of_upload_speedtests > 0:
+                    avg_upload_speed = (
+                            summarized_upload_speed / number_of_upload_speedtests
+                    )
+                    print(
+                        f"Average upload speed: {avg_upload_speed:.2f} Mbps ({number_of_upload_speedtests})"
+                    )
+                else:
+                    print(
+                        f"number_of_upload_speedtests was 0. Sum: {summarized_upload_speed}"
+                    )
             else:
                 print("No tests were completed.")
             break
 
         # PINGS
-        ping_router = ping("ping router", router_ip)
+        ping_router = ping("ping router", router_service.get_router_ip())
         add_ping_value(ping_router)
 
         ping_google = ping("ping google", "8.8.8.8")
@@ -163,9 +146,9 @@ def run_analysis():
 
         # SPEED TESTS
         if config["run_speedtests"]:
-            download_speed, upload_speed = get_speeds()
+            download_speed, upload_speed = speedtest_service.get_speeds()
             summarized_download_speed += download_speed
             summarized_upload_speed += upload_speed
 
-        pause_interval = int(os.getenv("PAUSE_INTERVAL_LENGTH"), 0)
+        pause_interval = 1
         time.sleep(pause_interval)

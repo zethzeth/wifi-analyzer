@@ -1,17 +1,11 @@
-import os
-import time
-import subprocess
 import re
+import subprocess
 
-from pprint import pprint
 from helpers.date_helpers import get_current_datetime_string
 from helpers.print_helpers import (
     print_table_ping_line,
 )
-
 from services.router_service import get_router_details
-
-from database import db
 
 
 def ping(event_type, ip_to_ping):
@@ -52,12 +46,12 @@ def ping(event_type, ip_to_ping):
     router_channel = router_details.get("channel")
 
     router_snr_string = (
-        str(router_snr) + " (" + str(router_signal) + ", " + str(router_noise) + ")"
+            str(router_snr) + " (" + str(router_signal) + ", " + str(router_noise) + ")"
     )
     exception = None
 
     try:
-        ping_count = os.getenv("PING_COUNT")
+        ping_count = 1
         output = subprocess.check_output(
             f"ping -c {ping_count} {ip_to_ping}",
             stderr=subprocess.STDOUT,
@@ -75,23 +69,19 @@ def ping(event_type, ip_to_ping):
         # db.add_log_to_db(event_type, None, ip_to_ping, succeeded)
         exception = e
 
-    # Print
-    print_tests = os.getenv("PRINT_TESTS")
-    if print_tests:
-        print_table_ping_line(
-            get_current_datetime_string("%H:%M:%S"),
-            event_type,
-            response_time,
-            ip_to_ping,
-            succeeded,
-            router_snr_string,
-            router_channel,
-        )
-        if not succeeded:
-            if os.getenv("EXPLAIN_FAILED_PINGS"):
-                print("Command execution failed!")
-                print(f"Command: {exception.cmd}")
-                print(f"Return code: {exception.returncode}")
-                print("Output/Error:")
-                print(exception.output)  # or print(e.stdout)
+    print_table_ping_line(
+        get_current_datetime_string("%H:%M:%S"),
+        event_type,
+        response_time,
+        ip_to_ping,
+        succeeded,
+        router_snr_string,
+        router_channel,
+    )
+    if not succeeded:
+        print("Command execution failed!")
+        print(f"Command: {exception.cmd}")
+        print(f"Return code: {exception.returncode}")
+        print("Output/Error:")
+        print(exception.output)  # or print(e.stdout)
     return response_time
