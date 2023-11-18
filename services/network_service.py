@@ -1,3 +1,4 @@
+import os
 import re
 import subprocess
 
@@ -9,8 +10,19 @@ from services.router_service import get_router_details
 
 
 def ping(event_type, ip_to_ping):
-    succeeded = 1
+    if not ip_to_ping:
+        print_table_ping_line(
+            get_current_datetime_string("%H:%M:%S"),
+            event_type,
+            -1,
+            ip_to_ping,
+            0,
+            ' ',
+            ' '
+        )
+        return
 
+    succeeded = 1
     router_details = get_router_details()
     # pprint(router_details)
     #     {'802.11 auth': 'open',
@@ -65,7 +77,7 @@ def ping(event_type, ip_to_ping):
             # db.add_log_to_db(event_type, response_time, ip_to_ping, succeeded)
     except subprocess.CalledProcessError as e:
         succeeded = 0
-        response_time = 0
+        response_time = -1
         # db.add_log_to_db(event_type, None, ip_to_ping, succeeded)
         exception = e
 
@@ -79,9 +91,10 @@ def ping(event_type, ip_to_ping):
         router_channel,
     )
     if not succeeded:
-        print("Command execution failed!")
-        print(f"Command: {exception.cmd}")
-        print(f"Return code: {exception.returncode}")
-        print("Output/Error:")
-        print(exception.output)  # or print(e.stdout)
+        if os.getenv("DEBUG") and int(os.getenv("DEBUG_VERBOSITY")) > 5:
+            print("Command execution failed!")
+            print(f"Command: {exception.cmd}")
+            print(f"Return code: {exception.returncode}")
+            print("Output/Error:")
+            print(exception.output)  # or print(e.stdout)
     return response_time

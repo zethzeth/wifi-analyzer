@@ -10,7 +10,7 @@ from helpers.print_helpers import print_block_title
 load_dotenv()
 
 if __name__ == "__main__":
-    print_block_title("Welcome to the Connection Tester!", "MAGENTA")
+    print_block_title("Welcome to the Connection Tester!", "MAGENTA", 0, 1)
 
     # Setup AnalysisData
     config['analysis_data'] = AnalysisData()

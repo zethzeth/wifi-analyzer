@@ -1,10 +1,9 @@
 import os
-from dotenv import load_dotenv
 import sqlite3
-from helpers.print_helpers import print_block_title
-from helpers.date_helpers import get_current_datetime_string
-from core.analysis_state import AnalysisState
 
+from dotenv import load_dotenv
+
+from core.analysis_state import AnalysisState
 
 load_dotenv()
 DATABASE_NAME = os.getenv("DATABASE_NAME")
@@ -72,5 +71,3 @@ def setup_db():
 
     conn.commit()
     conn.close()
-
-    print_block_title("Database initialized successfully!")

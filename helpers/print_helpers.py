@@ -1,4 +1,4 @@
-from colorama import init, Fore, Style
+from colorama import init, Fore
 
 # Initialize colorama
 init(autoreset=True)
@@ -10,6 +10,7 @@ def print_formatted(label, value, width=30):
 
 
 def print_color(value, color="blue", newline=True):
+    color = color.lower()
     # Default color map
     color_map = {
         "blue": Fore.BLUE,
@@ -70,9 +71,9 @@ def print_table_line(*args, col_widths=None):
     color_code = "\033[38;2;64;64;64m"
     reset_code = "\033[m"
     line = (
-        f"{color_code}|{reset_code} "
-        + f" {color_code}|{reset_code} ".join(items)
-        + f" {color_code}|{reset_code}"
+            f"{color_code}|{reset_code} "
+            + f" {color_code}|{reset_code} ".join(items)
+            + f" {color_code}|{reset_code}"
     )
     print(line)
 
@@ -120,13 +121,10 @@ def print_table_ping_line(*args, col_widths=None):
 
 
 def print_table_cell(
-    value, is_last, column_width=20, content_color="\033[38;2;64;64;64m"
+        value, is_last, column_width=20, content_color="\033[38;2;64;64;64m"
 ):
     truncated_suffix = "..."
-    if not value:
-        value_str = "None"
-    else:
-        value_str = str(value)
+    value_str = str(value)
 
     # Truncate the string to fit the width
     if len(value_str) > column_width:

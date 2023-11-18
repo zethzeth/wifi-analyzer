@@ -1,3 +1,4 @@
+import os
 import select
 import sys
 import time
@@ -33,122 +34,52 @@ def display_info():
 
 
 def run_analysis():
-    summarized_ping = 0
-    number_of_pings = 0
-    failed_pings = 0
-
-    summarized_dns_resolve_time = 0
-    number_of_dns_resolves = 0
-    failed_dns_resolves = 0
-
-    summarized_download_speed = 0
-    summarized_upload_speed = 0
-    number_of_download_speedtests = 0
-    number_of_upload_speedtests = 0
-
-    def add_speedtest_values(download_speed, upload_speed):
-        nonlocal summarized_download_speed, summarized_upload_speed, number_of_download_speedtests, number_of_upload_speedtests
-        if download_speed != 0:
-            summarized_download_speed += download_speed
-            number_of_download_speedtests += 1
-        if upload_speed != 0:
-            summarized_upload_speed += upload_speed
-            number_of_upload_speedtests += 1
-
-    def add_ping_value(ping_time):
-        nonlocal summarized_ping, number_of_pings, failed_pings
-        if ping_time != 0:  # Check if ping was successful
-            summarized_ping += ping_time
-            number_of_pings += 1
-        else:
-            failed_pings += 1
-
-    def add_dns_resolve_value(dns_resolve_time):
-        nonlocal summarized_dns_resolve_time, number_of_dns_resolves, failed_dns_resolves
-        if dns_resolve_time != 0:  # Check if ping was successful
-            summarized_dns_resolve_time += dns_resolve_time
-            number_of_dns_resolves += 1
-        else:
-            failed_dns_resolves += 1
-
-    completed_test_runs = 0
+    analysis_data = config['analysis_data']
 
     print_table_headers(
         "Timestamp", "Type", "Result (ms)", "Target", "Succeeded", "SNR", "Channel"
     )
-    test_runs = 1
+    test_loops_done = 1
     while True:
-        test_runs += 1
-        completed_test_runs += 1
-        if sys.stdin in select.select([sys.stdin], [], [], 0)[0]:
+        test_loops_done += 1
+
+        max_loops = config['maximum_test_cycles_to_run']
+        if test_loops_done >= max_loops:
+            if int(os.getenv('DEBUG_VERBOSITY')) > 10:
+                print(
+                    'maximum_test_cycles_to_run break sign reached! Loops done: ' + str(
+                        test_loops_done) + ' and max_loops: ' + str(
+                        max_loops))
+            break
+
+        if sys.stdin in select.select([sys.stdin], [], [], 0)[0]:  # If Enter is hit
             line = input()
-            # Calculating averages
-            if test_runs > 0:
-                if number_of_pings > 0:
-                    avg_ping_time = summarized_ping / number_of_pings
-                    print(
-                        f"Average ping time: {avg_ping_time:.2f} ms ({number_of_pings})"
-                    )
-                    print(f"Failed pings: {failed_pings}")
-                else:
-                    print(f"number_of_pings was 0")
-
-                if number_of_dns_resolves > 0:
-                    avg_dns_resolve_time = (
-                            summarized_dns_resolve_time / number_of_dns_resolves
-                    )
-                    print(
-                        f"Average DNS resolve time: {avg_dns_resolve_time:.2f} ms ({number_of_dns_resolves})"
-                    )
-                    print(f"Failed DNS resolves: {failed_dns_resolves}")
-                else:
-                    print(f"number_of_dns_resolves was 0")
-
-                if number_of_download_speedtests > 0:
-                    avg_download_speed = (
-                            summarized_download_speed / number_of_download_speedtests
-                    )
-                    print(
-                        f"Average download speed: {avg_download_speed:.2f} Mbps ({number_of_download_speedtests})"
-                    )
-                else:
-                    print(
-                        f"number_of_download_speedtests was 0. Sum: {summarized_download_speed}"
-                    )
-                if number_of_upload_speedtests > 0:
-                    avg_upload_speed = (
-                            summarized_upload_speed / number_of_upload_speedtests
-                    )
-                    print(
-                        f"Average upload speed: {avg_upload_speed:.2f} Mbps ({number_of_upload_speedtests})"
-                    )
-                else:
-                    print(
-                        f"number_of_upload_speedtests was 0. Sum: {summarized_upload_speed}"
-                    )
-            else:
-                print("No tests were completed.")
             break
 
         # PINGS
-        ping_router = ping("ping router", router_service.get_router_ip())
-        add_ping_value(ping_router)
+        router_ip = router_service.get_router_ip()
+        ping_router_time = ping("ping router", router_ip)
+        analysis_data.add_ping([ping_router_time, 'router'])
 
-        ping_google = ping("ping google", "8.8.8.8")
-        add_ping_value(ping_google)
+        ping_google_time = ping("ping google", "8.8.8.8")
+        analysis_data.add_ping([ping_google_time, 'google'])
 
-        ping_dr = ping("ping dr", "dr.dk")
-        add_ping_value(ping_dr)
+        ping_dr_time = ping("ping dr", "dr.dk")
+        analysis_data.add_ping([ping_dr_time, 'dr.dk'])
 
         # DNS
-        resolve_google = resolve_domain()
-        add_dns_resolve_value(resolve_google)
+        resolve_google = resolve_domain('google.com')
+        analysis_data.add_dns_resolve([resolve_google, 'google'])
+
+        resolve_google = resolve_domain('dr.dk')
+        analysis_data.add_dns_resolve([resolve_google, 'dr.dk'])
 
         # SPEED TESTS
         if config["run_speedtests"]:
             download_speed, upload_speed = speedtest_service.get_speeds()
-            summarized_download_speed += download_speed
-            summarized_upload_speed += upload_speed
+            analysis_data.add_speedtest([download_speed, upload_speed])
 
-        pause_interval = 1
-        time.sleep(pause_interval)
+        time.sleep(config['pause_between_tests'])
+
+    # Print report after while loop is broken
+    analysis_data.print_report()

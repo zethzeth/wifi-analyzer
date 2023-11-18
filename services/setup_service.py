@@ -6,7 +6,7 @@ from config import config
 
 
 def prompt_for_settings():
-    print_helpers.print_block_title('Prompting for details')
+    print_helpers.print_block_title('Prompting for details', 'blue', 0, 0)
     # Prompt for running speedtests
     run_speedtests = input("Run speedtests? (y/n): ").strip().lower() != "n"
     config["run_speedtests"] = run_speedtests

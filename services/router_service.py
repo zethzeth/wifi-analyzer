@@ -37,7 +37,8 @@ def get_router_ip():
         print("Error getting the router's IP.")
 
     # If the function has not returned by now, it means no valid IP was found
-    raise ValueError("No valid IP address found")
+    # raise ValueError("No valid IP address found")
+    return ''
 
 
 def get_router_details():
