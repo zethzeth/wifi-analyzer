@@ -1,67 +1,17 @@
 import os
 import re
 import subprocess
-
-from helpers.date_helpers import get_current_datetime_string
-from helpers.print_helpers import (
-    print_table_ping_line,
-)
-from services.router_service import get_router_details
+from pprint import pprint
 
 
-def ping(event_type, ip_to_ping):
+def ping(ip_to_ping):
+    response_time = -1
+    succeeded = 0
+
     if not ip_to_ping:
-        print_table_ping_line(
-            get_current_datetime_string("%H:%M:%S"),
-            event_type,
-            -1,
-            ip_to_ping,
-            0,
-            ' ',
-            ' '
-        )
-        return
+        return response_time, succeeded
 
-    succeeded = 1
-    router_details = get_router_details()
-    # pprint(router_details)
-    #     {'802.11 auth': 'open',
-    #  'BSSID': '',
-    #  'MCS': '15',
-    #  'NSS': '2',
-    #  'SSID': 'Zeth’s iPhone',
-    #  'agrCtlNoise': '-71',
-    #  'agrCtlRSSI': '-41',
-    #  'agrExtNoise': '0',
-    #  'agrExtRSSI': '0',
-    #  'channel': '6',
-    #  'guardInterval': '800',
-    #  'lastAssocStatus': '0',
-    #  'lastTxRate': '130',
-    #  'link auth': 'wpa2-psk',
-    #  'maxRate': '144',
-    #  'op mode': 'station',
-    #  'state': 'running'}
-
-    router_signal = router_details.get("agrCtlRSSI")
-    if router_signal is not None:
-        router_signal = int(router_signal)
-
-    router_noise = router_details.get("agrCtlNoise")
-    if router_noise is not None:
-        router_noise = int(router_noise)
-
-    router_snr = "N/A"
-    if isinstance(router_signal, int) and isinstance(router_noise, int):
-        router_snr = router_signal - router_noise
-
-    router_channel = router_details.get("channel")
-
-    router_snr_string = (
-            str(router_snr) + " (" + str(router_signal) + ", " + str(router_noise) + ")"
-    )
     exception = None
-
     try:
         ping_count = 1
         output = subprocess.check_output(
@@ -74,27 +24,19 @@ def ping(event_type, ip_to_ping):
         match = re.search("time=(\d+\.\d+) ms", output)
         if match:
             response_time = int(match.group(1).split(".")[0])
-            # db.add_log_to_db(event_type, response_time, ip_to_ping, succeeded)
+            succeeded = 1
     except subprocess.CalledProcessError as e:
         succeeded = 0
         response_time = -1
-        # db.add_log_to_db(event_type, None, ip_to_ping, succeeded)
         exception = e
 
-    print_table_ping_line(
-        get_current_datetime_string("%H:%M:%S"),
-        event_type,
-        response_time,
-        ip_to_ping,
-        succeeded,
-        router_snr_string,
-        router_channel,
-    )
     if not succeeded:
         if os.getenv("DEBUG") and int(os.getenv("DEBUG_VERBOSITY")) > 5:
-            print("Command execution failed!")
-            print(f"Command: {exception.cmd}")
-            print(f"Return code: {exception.returncode}")
-            print("Output/Error:")
-            print(exception.output)  # or print(e.stdout)
-    return response_time
+            pprint(exception)
+            # print("Command execution failed!")
+            # print(f"Command: {exception.cmd}")
+            # print(f"Return code: {exception.returncode}")
+            # print("Output/Error:")
+            # print(exception.output)  # or print(e.stdout)
+
+    return response_time, succeeded

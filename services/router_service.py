@@ -41,6 +41,24 @@ def get_router_ip():
     return ''
 
 
+# pprint(get_router_details)
+#     {'802.11 auth': 'open',
+#  'BSSID': '',
+#  'MCS': '15',
+#  'NSS': '2',
+#  'SSID': 'Zeth’s iPhone',
+#  'agrCtlNoise': '-71',
+#  'agrCtlRSSI': '-41',
+#  'agrExtNoise': '0',
+#  'agrExtRSSI': '0',
+#  'channel': '6',
+#  'guardInterval': '800',
+#  'lastAssocStatus': '0',
+#  'lastTxRate': '130',
+#  'link auth': 'wpa2-psk',
+#  'maxRate': '144',
+#  'op mode': 'station',
+#  'state': 'running'}
 def get_router_details():
     router_details = {}
 
@@ -66,3 +84,51 @@ def get_router_details():
         print_color("Error getting WiFi details or not connected to WiFi.", "red")
 
     return router_details
+
+
+def print_details_of_all_routers():
+    try:
+        raw_output = subprocess.check_output(
+            [
+                "/System/Library/PrivateFrameworks/Apple80211.framework/Versions/Current/Resources/airport",
+                "-s",
+            ],
+            stderr=subprocess.STDOUT,
+            text=True,
+        )
+        print(raw_output)
+    except subprocess.CalledProcessError:
+        print_color("Error getting details of other WiFi details.", "red")
+
+
+def get_signal_noise_and_channel(router_details):
+    signal = router_details.get("agrCtlRSSI")
+    if signal is not None:
+        signal = int(signal)
+
+    noise = router_details.get("agrCtlNoise")
+    if noise is not None:
+        noise = int(noise)
+
+    # channel = router_details.get("channel")
+    channel = get_channel(router_details)
+
+    return signal, noise, channel
+
+
+def get_channel(details):
+    channel = details.get("channel")
+    if ',' in channel:
+        primary, width = channel.split(',')
+        return f"{primary} ({width})"
+    else:
+        return channel
+
+
+def get_snr_string(signal, noise):
+    snr = "N/A"
+    if isinstance(signal, int) and isinstance(noise, int):
+        snr = signal - noise
+        return str(snr) + " (" + str(signal) + ", " + str(noise) + ")"
+    else:
+        return "N/A"

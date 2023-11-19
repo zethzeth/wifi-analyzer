@@ -82,47 +82,8 @@ def print_table_line(*args, col_widths=None):
     # print(separator)
 
 
-def print_table_ping_line(*args, col_widths=None):
-    default_width = 20
-
-    # Check if custom widths are provided. If not, use default.
-    if col_widths is None:
-        col_widths = [default_width for _ in args]
-
-    # Loop through each item, adjust and color them, then print using print_table_cell
-    for i, item in enumerate(args):
-        width = col_widths[i]
-
-        # Set default color to gray
-        cell_color = "white"
-
-        # Check for Succeeded color condition (index 4)
-        if i == 4 and item == 0:
-            cell_color = "red"
-
-        # Check for Result color conditions (index 2)
-        if i == 2:
-            if item is None:
-                cell_color = "red"
-            else:
-                try:
-                    int_item = int(item)
-                    if item is None or int_item > 300:
-                        cell_color = "red"
-                    elif int_item > 150:
-                        cell_color = "yellow"
-                except ValueError:
-                    # If item can't be converted to an integer, use the default gray color
-                    cell_color = "red"
-
-        # Now we can directly use print_table_cell to print each cell in sequence
-        is_last = i == len(args) - 1
-        print_table_cell(item, is_last, column_width=width, content_color=cell_color)
-
-
-def print_table_cell(
-        value, is_last, column_width=20, content_color="\033[38;2;64;64;64m"
-):
+# value, column_width=20, is_last, color="\033[38;2;64;64;64m"
+def print_table_cell(value, column_width=20, color="white", is_last=False):
     truncated_suffix = "..."
     value_str = str(value)
 
@@ -130,41 +91,14 @@ def print_table_cell(
     if len(value_str) > column_width:
         value_str = value_str[: column_width - len(truncated_suffix)] + truncated_suffix
 
-    # Print the left table border
-    print_color("|", color="dark", newline=False)
-
-    # Print the content
-    print_color(value_str.ljust(column_width), color=content_color, newline=False)
-
-    # If it's the last cell, print the right table border and move to the next line
-    if is_last:
-        print_color("|", color="dark", newline=True)
+    print_color(value_str.ljust(column_width), color=color, newline=is_last)
 
 
-def print_table_header(value, column_width=20):
+def print_table_header(value, column_width=20, is_last=False):
     # Print the header content
-    print_color(value.ljust(column_width), color="blue", newline=False)
+    print_color(value.ljust(column_width), color="blue", newline=is_last)
 
 
-def print_table_headers(*args, col_widths=None):
-    default_width = 20
-    if col_widths is None:
-        col_widths = [default_width for _ in args]
-
-    # Print the upper border line
-    line_length = sum(col_widths) + len(args) - 1  # account for '|' separators
-    print_color("-" * line_length, color="white")
-
-    # Print each header
-    for i, header in enumerate(args):
-        # Print the left table border
-        print_color("|", color="dark", newline=False)
-
-        # Print the header content
-        print_table_header(header, col_widths[i])
-
-    # Print the right table border and move to the next line
-    print_color("|", color="dark")
-
-    # Print the lower border line
+def print_table_header_line(col_widths):
+    line_length = sum(col_widths)
     print_color("-" * line_length, color="white")
