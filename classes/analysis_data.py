@@ -47,19 +47,30 @@ class AnalysisData:
             self.upload_speedtests.append(item)
 
     def add_signal_and_noise(self, signal, noise):
-        snr = signal - noise
-        self.router_signals.append(signal)
-        self.router_noises.append(noise)
-        self.router_snr.append(snr)
+
+        if isinstance(signal, (int, float)):
+            self.router_signals.append(signal)
+
+        if isinstance(noise, (int, float)):
+            self.router_noises.append(noise)
+
+        if isinstance(signal, (int, float)) and isinstance(noise, (int, float)):
+            snr = signal - noise
+            self.router_snr.append(snr)
 
     def add_channel(self, channel):
         # Extracting the first numeric part of the string
-        numeric_part = channel.split(' ')[0]  # Splits the string at spaces and takes the first part
-        try:
-            numeric_value = int(numeric_part)  # Converts the extracted part to an integer
-            self.router_channels.append(numeric_value)
-        except ValueError:
-            print(f"Invalid channel format: {channel}")
+        if (config['connection_type'] == 'cabled'):
+            print('Cabled connection')
+            return
+
+        if isinstance(channel, (str, list)):
+            numeric_part = channel.split(' ')[0]  # Splits the string at spaces and takes the first part
+            try:
+                numeric_value = int(numeric_part)  # Converts the extracted part to an integer
+                self.router_channels.append(numeric_value)
+            except ValueError:
+                print(f"Invalid channel format: {channel}")
 
     def print_report(self):
         self.print_meta_report()
@@ -133,22 +144,44 @@ class AnalysisData:
         print(tabulate(table_data, headers, tablefmt="simple", colalign=column_alignments))
 
     def print_router_report(self):
+
+        if (config['connection_type'] == 'cabled'):
+            print("Wired connection")
+            return
+
         table_data = []
-        total_snr, avg_snr, median_snr = calculate_stats(self.router_snr)
-        min_snr = min(self.router_snr)
-        max_snr = max(self.router_snr)
 
-        total_signal, avg_signal, median_signal = calculate_stats(self.router_signals)
-        min_signal = min(self.router_signals)
-        max_signal = max(self.router_signals)
+        if self.router_snr:
+            total_snr, avg_snr, median_snr = calculate_stats(self.router_snr)
+            min_snr = min(self.router_snr)
+            max_snr = max(self.router_snr)
+        else:
+            total_snr = avg_snr = median_snr = min_snr = max_snr = 0
+            print('self.router_snr was empty')
 
-        total_noise, avg_noise, median_noise = calculate_stats(self.router_noises)
-        min_noise = min(self.router_noises)
-        max_noise = max(self.router_noises)
+        if self.router_signals:
+            total_signal, avg_signal, median_signal = calculate_stats(self.router_signals)
+            min_signal = min(self.router_signals)
+            max_signal = max(self.router_signals)
+        else:
+            total_signal = avg_signal = median_signal = min_signal = max_signal = 0
+            print('self.router_signals was empty')
 
-        total_channel, avg_channel, median_channel = calculate_stats(self.router_channels)
-        min_channel = min(self.router_channels)
-        max_channel = max(self.router_channels)
+        if self.router_noises:
+            total_noise, avg_noise, median_noise = calculate_stats(self.router_noises)
+            min_noise = min(self.router_noises)
+            max_noise = max(self.router_noises)
+        else:
+            total_noise = avg_noise = median_noise = min_noise = max_noise = 0
+            print('self.router_noise was empty')
+
+        if self.router_channels:
+            total_channel, avg_channel, median_channel = calculate_stats(self.router_channels)
+            min_channel = min(self.router_channels)
+            max_channel = max(self.router_channels)
+        else:
+            total_channel = avg_channel = median_channel = min_channel = max_channel = 0
+            print('self.router_channels was empty')
 
         table_data.append(["SNR", len(self.router_snr), f"{avg_snr:.0f}", f"{median_snr:.0f}", f"{min_snr:.0f}",
                            f"{max_snr:.0f}"])
@@ -158,10 +191,12 @@ class AnalysisData:
         table_data.append(
             ["Noise", len(self.router_noises), f"{avg_noise:.0f}", f"{median_noise:.0f}", f"{min_noise:.0f}",
              f"{max_noise:.0f}"])
-        table_data.append(
-            ["Channel", len(self.router_channels), f"{avg_channel:.0f}", f"{median_channel:.0f}",
-             f"{min_channel:.0f}",
-             f"{max_channel:.0f}"])
+
+        if (config['connection_type'] == 'wifi'):
+            table_data.append(
+                ["Channel", len(self.router_channels), f"{avg_channel:.0f}", f"{median_channel:.0f}",
+                 f"{min_channel:.0f}",
+                 f"{max_channel:.0f}"])
 
         print_block_title('Router result')
         headers = ["Type", "  #", "  Avg", "Median", "Min", "Max"]

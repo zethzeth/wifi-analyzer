@@ -3,6 +3,7 @@ import subprocess
 
 from dotenv import load_dotenv
 
+from config import config
 from helpers.print_helpers import (
     print_color,
 )
@@ -102,6 +103,12 @@ def print_details_of_all_routers():
 
 
 def get_signal_noise_and_channel(router_details):
+    if router_details == "{'AirPort': 'Off'}":
+        return 0, 0, 0
+
+    if (config['connection_type'] == 'cabled'):
+        return 0, 0, 0
+
     signal = router_details.get("agrCtlRSSI")
     if signal is not None:
         signal = int(signal)
@@ -116,13 +123,14 @@ def get_signal_noise_and_channel(router_details):
     return signal, noise, channel
 
 
-def get_channel(details):
-    channel = details.get("channel")
-    if ',' in channel:
-        primary, width = channel.split(',')
-        return f"{primary} ({width})"
-    else:
-        return channel
+def get_channel(router_details):
+    channel = router_details.get("channel")
+    if isinstance(channel, (str, list)):
+        if ',' in channel:
+            primary, width = channel.split(',')
+            return f"{primary} ({width})"
+        else:
+            return channel
 
 
 def get_snr_string(signal, noise):

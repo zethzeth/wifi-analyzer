@@ -40,10 +40,15 @@ def run_pings_and_dns(analysis_data, run_event):
         # PINGS
         router_ip = router_service.get_router_ip()
         router_details = router_service.get_router_details()
-        sig, noise, ch = router_service.get_signal_noise_and_channel(router_details)
 
-        analysis_data.add_signal_and_noise(sig, noise)
-        analysis_data.add_channel(ch)
+        if (config['connection_type'] == 'wifi'):
+            sig, noise, ch = router_service.get_signal_noise_and_channel(router_details)
+            analysis_data.add_signal_and_noise(sig, noise)
+            analysis_data.add_channel(ch)
+        else:
+            sig = 0
+            noise = 0
+            ch = 0
 
         target = router_ip
         target_name = "router"
