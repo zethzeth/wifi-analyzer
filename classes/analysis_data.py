@@ -79,6 +79,7 @@ class AnalysisData:
 
     def print_meta_report(self):
         print_block_title("Meta info")
+        print("Test name: " + config['test_name'])
         start_time = get_prettified_datetime_from_unix(config['test_start_unix_stamp'])
         end_time = get_prettified_datetime_from_unix(config['test_end_unix_stamp'])
         print("Start: " + start_time)

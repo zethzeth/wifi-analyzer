@@ -4,13 +4,41 @@ A program for testing the wifi-connection.
 
 ## Setup
 
-**Step 1: .env**
+### Step 1: .env
 
-Correct values in `.env`
+Correct values in `.env` (it's barely used for now).
 
-**Step 2: Venv**
+### Step 2: Virtual environment
 
-Read the "Venv"-section of the Makefile.
+Run the make-target: `make setup-env` (which just runs a basic command using python3).
+
+Then run make activate-env, to see the command you'll need to run, to activate the virtual environment: 
+
+```
+source wifianalyzerenv/bin/activate
+```
+
+... This isn't that smart/clever, but just made like this, so all setup and executing _starts_ from the Makefile.
+
+### Step 3: Run the program
+
+```
+make run
+```
+
+Then it'll ask you some questions (which is subject to change).
+
+![](readme-assets/prompting-for-details.png)
+
+## Speedtest
+
+It uses Ookla's `speedtest-cli` library, where it'll attempt a download of a large file (like speedtest.net).
+
+## Report
+
+It will output something like this:
+
+
 
 ## Useful commands
 

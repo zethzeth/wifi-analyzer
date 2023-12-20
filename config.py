@@ -1,6 +1,6 @@
 # Global configuration object
 config = {
-    "test_name": '',
+    "test_name": 'Unknown',
     "test_start_unix_stamp": None,
     "test_end_unix_stamp": None,
     "test_duration": 300,
