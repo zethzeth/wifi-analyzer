@@ -1,0 +1,14 @@
+{
+  "name": "kestrel",
+  "productName": "Kestrel",
+  "version": "1.0.0",
+  "description": "Wi-Fi and connection analyzer",
+  "private": true,
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "devDependencies": {
+    "electron": "42.11.13"
+  }
+}

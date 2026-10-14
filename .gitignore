@@ -9,8 +9,9 @@
 *.db
 .env
 
-# Venv
-wifianalyzerenv
+# Venv / app
+.venv
+node_modules/
 
 # Python
 __pycache__/

@@ -1,6 +1,9 @@
 SHELL := /bin/bash
-VENV_NAME := wifianalyzerenv
-DB_NAME := wifi_analyzer.db
+VENV_NAME := .venv
+DB_NAME := kestrel.db
+PYTHON := $(VENV_NAME)/bin/python
+UNAME := $(shell uname)
+ELECTRON_FLAGS := $(if $(filter Linux,$(UNAME)),--no-sandbox,) # Ubuntu's AppArmor blocks Electron's sandbox; see README
 
 # ANSI Escape Codes for colors
 RESET  := \033[0m
@@ -25,7 +28,7 @@ BRIGHT_PURPLE := \033[1;35m
 BRIGHT_CYAN   := \033[1;36m
 BRIGHT_WHITE  := \033[1;37m
 
-.PHONY: help start clean db test
+.PHONY: help ship run channels test setup-env setup-app reset-db clean-up-env
 
 help:
 	@grep -E '^[1-9a-zA-Z_-]+:.*?## .*$$|(^#--)' $(MAKEFILE_LIST) \
@@ -33,33 +36,43 @@ help:
 	| sed -e 's/\[32m #-- /[33m/'
 
 #-- Program execution
-run: ## Run the program
-	@if [ -z "$$VIRTUAL_ENV" ] || [[ ! "$$VIRTUAL_ENV" =~ "wifianalyzerenv" ]]; then \
-		echo "You are not in the 'wifianalyzerenv' virtual environment. Activate it with:"; \
-		echo -e "${ORANGE}source $(VENV_NAME)/bin/activate ${RESET}"; \
-		exit 1; \
-	fi
-	@python3 main.py
+ship: $(PYTHON) app/node_modules ## Launch the Kestrel desktop app (installs what's missing)
+	@cd app && npx electron . $(ELECTRON_FLAGS)
 
-#-- DB
-reset-db: ## Delete database
-	@python3 scripts/drop-all-tables.py
-	@rm $(DB_NAME)
+run: $(PYTHON) ## Run an interactive test in the terminal
+	@$(PYTHON) -m kestrel run
 
-#-- Venv
-setup-env: ## Install the virtual environment
+channels: $(PYTHON) ## Scan and show how crowded each Wi-Fi channel is
+	@$(PYTHON) -m kestrel channels
+
+test: $(PYTHON) ## Run the parser/analysis unit tests
+	@$(PYTHON) -m unittest discover -s tests -t .
+
+#-- Setup
+setup-env: ## Create the Python virtual environment and install dependencies
+	@python3 -c 'import sys; sys.exit(sys.version_info < (3, 10))' || { echo -e "${RED}Python 3.10+ needed (macOS: brew install python)${RESET}"; exit 1; }
 	@python3 -m venv $(VENV_NAME)
-	$(VENV_NAME)/bin/pip3 install -r requirements.txt
+	@$(VENV_NAME)/bin/pip install --quiet -r requirements.txt
+	@tools="ping dig"; [ "$(UNAME)" = Linux ] && tools="$$tools iw nmcli resolvectl"; \
+	for tool in $$tools; do \
+		command -v $$tool >/dev/null || echo -e "${ORANGE}Missing '$$tool' - install it with your package manager${RESET}"; \
+	done
+	@echo -e "${GREEN}Python engine ready.${RESET}"
 
-activate-env: ## Activate the virtual environment
-	@echo "Run this command:"
-	@echo -e "${ORANGE}source $(VENV_NAME)/bin/activate ${RESET}"
-	@echo "This cannot be done via make-targets, since they run in subprocesses"
+setup-app: ## Install the Electron app's dependencies
+	@command -v npm >/dev/null || { echo -e "${RED}npm not found - install Node.js first${RESET}"; exit 1; }
+	@cd app && npm install --silent
+	@echo -e "${GREEN}App ready. Run: make ship${RESET}"
 
-deactivate-env: ## Deactivate the virtual environment
-	@echo "Run this command:"
-	@echo -e "${ORANGE}deactivate ${RESET}"
-	@echo "This cannot be done via make-targets, since they run in subprocesses"
+$(PYTHON):
+	@$(MAKE) --no-print-directory setup-env
 
-clean-up-env: deactivate-env ## Deactivate the virtual environment (and delete files)
-	@rm -rf $(VENV_NAME)
+app/node_modules:
+	@$(MAKE) --no-print-directory setup-app
+
+#-- Cleanup
+reset-db: ## Delete the measurements database
+	@rm -f $(DB_NAME)
+
+clean-up-env: ## Delete the virtual environment and the app's node_modules
+	@rm -rf $(VENV_NAME) app/node_modules

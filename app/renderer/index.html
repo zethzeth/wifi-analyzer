@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'">
+    <title>Kestrel</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="topbar">
+    <div class="brand">Kestrel</div>
+    <nav class="tabs" role="tablist">
+        <button class="tab active" role="tab" data-tab="test">Live test</button>
+        <button class="tab" role="tab" data-tab="channels">Channels</button>
+    </nav>
+    <div class="conn" id="conn"><span class="muted">Starting engine…</span></div>
+    <button class="ghost" id="refresh" title="Refresh connection info">Refresh</button>
+</header>
+
+<main>
+    <section class="tab-panel active" id="tab-test">
+        <aside class="setup card">
+            <h2>New test</h2>
+            <form id="test-form">
+                <label>Name <input name="test_name" placeholder="Desk check" autocomplete="off"></label>
+                <label>Location <input name="location" placeholder="2nd floor, desk 14" autocomplete="off"></label>
+                <label>Duration
+                    <select name="duration">
+                        <option value="60">1 minute</option>
+                        <option value="300" selected>5 minutes</option>
+                        <option value="900">15 minutes</option>
+                        <option value="1800">30 minutes</option>
+                        <option value="3600">1 hour</option>
+                    </select>
+                </label>
+                <label class="check"><input type="checkbox" name="run_speedtests" checked> Speedtests, once a minute</label>
+                <button class="primary" id="start" type="submit">Start test</button>
+                <button class="danger" id="stop" type="button" hidden>Stop</button>
+            </form>
+            <div class="progress" id="progress" hidden>
+                <div class="track"><div class="fill" id="progress-fill"></div></div>
+                <span id="progress-text"></span>
+            </div>
+            <h3>Debugging a desk</h3>
+            <ul class="tips">
+                <li>Run at the problem desk, then somewhere the Wi-Fi is known to be good, and compare.</li>
+                <li>Let it run 15+ minutes; drops are usually intermittent.</li>
+                <li>Sit where the person sits; a body or a monitor arm costs several dB.</li>
+                <li>This measures <em>your</em> adapter. If yours is fine and theirs isn't, suspect their machine or dock.</li>
+            </ul>
+        </aside>
+
+        <div class="content">
+            <div class="tiles" id="tiles"></div>
+
+            <div class="card" id="report-card" hidden>
+                <div class="card-head"><h3>Diagnosis</h3><span class="muted" id="report-meta"></span></div>
+                <ul class="findings" id="findings"></ul>
+                <details>
+                    <summary>All measurements</summary>
+                    <table class="data" id="summary-table"></table>
+                </details>
+            </div>
+
+            <div class="filters" id="filters" hidden>
+                <span class="filters-label">Targets</span>
+                <div class="chips" id="chips"></div>
+                <button class="ghost small" id="show-all" type="button">Show all</button>
+                <span class="muted hint">Click to hide/show · double-click to show only that one</span>
+            </div>
+
+            <div class="card">
+                <div class="card-head"><h3>Ping response time (ms)</h3><div class="legend" id="latency-legend"></div></div>
+                <div class="chart" id="latency-chart"></div>
+                <p class="caption">Only successful pings are drawn; a line breaks where a ping failed. Shaded: a speedtest is loading the link.</p>
+            </div>
+
+            <div class="card">
+                <div class="card-head"><h3>Failed calls</h3><span class="muted">Same timeline as above · count per target on the right</span></div>
+                <div class="chart" id="failure-chart"></div>
+                <p class="caption">Each red mark is one ping or DNS lookup that got no answer within 3 seconds.</p>
+            </div>
+
+            <div class="card">
+                <div class="card-head">
+                    <h3>Results</h3>
+                    <div class="segmented" role="tablist">
+                        <button class="active" data-view="per-target" type="button">Per target</button>
+                        <button data-view="every-call" type="button">Every call</button>
+                    </div>
+                    <label class="check" id="only-failures-wrap" hidden><input type="checkbox" id="only-failures"> Only failures</label>
+                </div>
+                <table class="data" id="results-table"></table>
+                <p class="caption" id="results-caption"></p>
+            </div>
+
+            <div class="card">
+                <div class="card-head"><h3>Signal strength (dBm)</h3></div>
+                <div class="chart" id="signal-chart"></div>
+                <p class="caption">Vertical lines: roamed to another access point. −67 dBm or better is good for calls.</p>
+            </div>
+
+            <div class="card">
+                <div class="card-head"><h3>Events</h3><span class="muted">Spikes over 150 ms, roams and speedtests</span></div>
+                <ol class="events" id="events"><li class="muted">Nothing yet.</li></ol>
+            </div>
+        </div>
+    </section>
+
+    <section class="tab-panel" id="tab-channels">
+        <div class="toolbar">
+            <button class="primary" id="scan">Scan now</button>
+            <span class="muted" id="scan-note">Load = signal-weighted count of other radios overlapping a channel. A loud neighbour counts ~1, a faint one ~0.</span>
+        </div>
+        <div id="bands"><p class="muted">No scan yet.</p></div>
+        <div class="card">
+            <div class="card-head">
+                <h3>Nearby access points</h3>
+                <div class="ap-filter">
+                    <input id="ap-filter" type="search" placeholder="Filter: borsen, bn-iot" autocomplete="off" spellcheck="false">
+                    <label class="check"><input type="checkbox" id="ap-case"> Case sensitive</label>
+                    <span class="muted" id="network-count"></span>
+                </div>
+            </div>
+            <table class="data" id="networks"></table>
+        </div>
+    </section>
+</main>
+
+<div class="tooltip" id="tooltip" hidden></div>
+<script src="charts.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
